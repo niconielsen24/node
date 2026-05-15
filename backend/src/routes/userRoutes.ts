@@ -4,8 +4,8 @@ import { Repository } from "../internal/repository/repo";
 
 export function createUserRouter(repo: Repository) {
     const router = Router();
-
     router.get("/:id", userController.getById(repo));
+    router.get("/", userController.createUser(repo));
     return router;
 }
 

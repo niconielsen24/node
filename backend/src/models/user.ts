@@ -1,8 +1,13 @@
+import { UUID } from "crypto";
+
 export interface User {
-  id: number;
+  id: UUID;
   name: string;
 }
 
-export function withName(user: User, name: string): User & { name : string } {
-  return { ...user, name };
+export function newUser(name: string): User {
+  return {
+    id: crypto.randomUUID(),
+    name,
+  };
 }
