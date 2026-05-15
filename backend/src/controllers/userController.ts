@@ -1,26 +1,24 @@
 import { Request, Response } from "express";
 import * as userService from "../services/userService";
 import { Repository } from "../internal/repository/repo";
-import { newUser } from "../models/user";
-import {constants } from "http2";
+import { User, newUser } from "../models/user";
+import { constants } from "http2";
 
-export function getById(repo: Repository) {
-  return function (req: Request, res: Response): void {
-
-    const id = parseInt(req.params.id, 10);
-    const user = userService.getUserById(id, repo);
+export function getById(repo: Repository<User>) {
+  return async function (req: Request, res: Response): Promise<void> {
+    const user = await userService.getUserById(req.params.id, repo);
 
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(constants.HTTP_STATUS_NOT_FOUND).json({ message: "User not found" });
       return;
     }
 
     res.json(user);
-  }
+  };
 }
 
-export function createUser(repo: Repository) {
-  return function (req: Request, res: Response): void {
+export function createUser(repo: Repository<User>) {
+  return async function (req: Request, res: Response): Promise<void> {
     const { name } = req.body;
 
     if (!name) {
@@ -28,8 +26,7 @@ export function createUser(repo: Repository) {
       return;
     }
 
-    const user = newUser(name);
-    const createdUser = userService.createUser(user, repo);
-    res.status(201).json(createdUser);
-  }
+    const created = await userService.createUser(newUser(name), repo);
+    res.status(constants.HTTP_STATUS_CREATED).json(created);
+  };
 }

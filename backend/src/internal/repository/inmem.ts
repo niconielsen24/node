@@ -1,26 +1,26 @@
+import { User } from "../../models/user";
 import { Repository } from "./repo";
 
-export class InMemUserRepo implements Repository {
-  private data: Map<string, any> = new Map();
+export class InMemUserRepo implements Repository<User> {
+  private data: Map<string, User> = new Map();
 
-  async create<T>(data: T): Promise<T> {
-    const id = Math.random().toString(36).substr(2, 9);
-    this.data.set(id, { ...data, id });
-    return { ...data, id };
+  async create(data: User): Promise<User> {
+    this.data.set(data.id, data);
+    return data;
   }
 
-  async read<T>(id: string): Promise<T | null> {
-    const item = this.data.get(id);
-    return item || null;
+  async read(id: string): Promise<User | null> {
+    return this.data.get(id) ?? null;
   }
 
-  async update<T>(id: string, data: T): Promise<T> {
-    const item = await this.read(id);
-    if (!item) {
-      throw new Error("Item not found");
+  async update(id: string, data: Partial<User>): Promise<User> {
+    const existing = this.data.get(id);
+    if (!existing) {
+      throw new Error(`User ${id} not found`);
     }
-    this.data.set(id, { ...item, ...data });
-    return { ...item, ...data };
+    const updated = { ...existing, ...data };
+    this.data.set(id, updated);
+    return updated;
   }
 
   async delete(id: string): Promise<void> {
@@ -28,19 +28,9 @@ export class InMemUserRepo implements Repository {
   }
 }
 
-export class InMemGameRepo implements Repository {
-    //implement empty methosds for now, as we will implement them later when we have the game logic
-    async create<T>(data: T): Promise<T> {
-        return data;
-    }
-    async read<T>(id: string): Promise<T | null> {
-        return null;
-    }
-    async update<T>(id: string, data: T): Promise<T> {
-        return data;
-    }
-    async delete(id: string): Promise<void> {
-        return;
-    }
-
-} 
+export class InMemGameRepo implements Repository<unknown> {
+  async create(data: unknown): Promise<unknown> { return data; }
+  async read(_id: string): Promise<unknown | null> { return null; }
+  async update(_id: string, data: unknown): Promise<unknown> { return data; }
+  async delete(_id: string): Promise<void> { }
+}

@@ -13,6 +13,7 @@
     "build:backend": "npm run build --workspace=backend"
   },
   "dependencies": {
-    "react-router-dom": "^7.15.1"
+    "react-router-dom": "^7.15.1",
+    "zustand": "^5.0.13"
   }
 }
