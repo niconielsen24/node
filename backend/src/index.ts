@@ -40,6 +40,24 @@ app.use("/users", createUserRouter(userController));
 app.use("/lobbies", createLobbyRouter(lobbyController));
 app.use("/games", createGameRouter(gameController));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
+function shutdown() {
+
+  // Gracefully close the server
+  server.close(() => {
+    console.log("Server closed");
+  });
+
+
+  // Forcefully exit after 15 seconds if not closed
+  setTimeout(() => {
+    console.error("Failed to close server gracefully, exiting...");
+    process.exit(1);
+  }, 15000);
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
