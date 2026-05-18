@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer } from "http";
+import { WsServer } from "./ws/wsServer";
 import { corsMiddleware } from "./middleware/cors";
 import { authMiddleware } from "./middleware/auth";
 import { InMemUserRepo } from "./internal/repository/inmem_user";
@@ -45,7 +47,10 @@ app.use("/users", createUserRouter(userController));
 app.use("/lobbies", createLobbyRouter(lobbyController));
 app.use("/games", createGameRouter(gameController));
 
-const server = app.listen(PORT, () => {
+const server = createServer(app);
+WsServer.init(server);
+
+server.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
 
