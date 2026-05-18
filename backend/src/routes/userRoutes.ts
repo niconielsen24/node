@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
+import { asyncHandler } from "../utils/asyncHandler";
 
 export function createUserRouter(controller: UserController): Router {
-    const router = Router();
-    router.get("/:id", controller.getById);
-    router.post("/newUser", controller.createUser);
-    router.delete("/:id", controller.deleteUser);
-    return router;
+  const router = Router();
+  router.get("/:id", asyncHandler(controller.getById));
+  router.post("/", asyncHandler(controller.createUser));
+  router.delete("/:id", asyncHandler(controller.deleteUser));
+  return router;
 }
-

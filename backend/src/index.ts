@@ -16,6 +16,7 @@ import { createLobbyRouter } from "./routes/lobbyRoutes";
 import { GameService } from "./services/gameService";
 import { GameController } from "./controllers/gameController";
 import { createGameRouter } from "./routes/gameRoutes";
+import { errorHandler } from "./middleware/errorHandler";
 
 
 const app = express();
@@ -33,7 +34,7 @@ const gameService = new GameService(gameRepo);
 
 // Controllers
 const userController = new UserController(userService);
-const lobbyController = new LobbyController(lobbyService);
+const lobbyController = new LobbyController(lobbyService, WsServer);
 const gameController = new GameController(gameService);
 
 // Generic Middleware
@@ -46,6 +47,7 @@ app.use(authMiddleware);
 app.use("/users", createUserRouter(userController));
 app.use("/lobbies", createLobbyRouter(lobbyController));
 app.use("/games", createGameRouter(gameController));
+app.use(errorHandler);
 
 const server = createServer(app);
 WsServer.init(server);

@@ -1,108 +1,58 @@
-import { LobbyService } from "../services/lobbyService";
 import { Request, Response } from "express";
 import { constants } from "http2";
+import { LobbyService } from "../services/lobbyService";
+import { WsServer } from "../ws/wsServer";
+import { BadRequestError, NotFoundError } from "../errors/httpErrors";
 
 export class LobbyController {
-    constructor(private lobbyService: LobbyService) { }
+  constructor(private lobbyService: LobbyService, private wsServer: typeof WsServer) {}
 
-    async createLobby(req: Request, res: Response): Promise<Response> {
-        const { owner, name, isPrivate } = req.body;
-        if (!name) {
-            return res.status(constants.HTTP_STATUS_BAD_REQUEST)
-                .json({ error: "Lobby name is required" });
-        }
+  createLobby = async (req: Request, res: Response): Promise<void> => {
+    const { owner, name, isPrivate } = req.body;
+    if (!name) throw new BadRequestError("Lobby name is required");
+    if (!owner) throw new BadRequestError("Owner is required");
 
-        if (!owner) {
-            return res.status(constants.HTTP_STATUS_BAD_REQUEST)
-                .json({ error: "Owner is required" });
-        }
+    const lobby = isPrivate
+      ? await this.lobbyService.createPrivateLobby(owner, name)
+      : await this.lobbyService.createPublicLobby(owner, name);
 
-        try {
-            let lobby;
-            if (isPrivate) {
-                lobby = await this.lobbyService.createPrivateLobby(owner, name);
-            } else {
-                lobby = await this.lobbyService.createPublicLobby(owner, name);
-            }
-            return res.status(constants.HTTP_STATUS_CREATED).json(lobby);
-        } catch (error) {
-            console.error("Error creating lobby:", error);
-            return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-                .json({ error: "Failed to create lobby" });
-        }
-    }
+    this.wsServer.openRoom(lobby.id);
+    res.status(constants.HTTP_STATUS_CREATED).json(lobby);
+  };
 
-    async getLobbyById(req: Request, res: Response): Promise<Response> {
-        const { id } = req.params;
-        try {
-            const lobby = await this.lobbyService.getLobbyById(id);
-            if (!lobby) {
-                return res.status(constants.HTTP_STATUS_NOT_FOUND)
-                    .json({ error: "Lobby not found" });
-            }
-            return res.json(lobby);
-        } catch (error) {
-            console.error("Error fetching lobby:", error);
-            return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-                .json({ error: "Failed to fetch lobby" });
-        }
-    }
+  getLobbyById = async (req: Request, res: Response): Promise<void> => {
+    const lobby = await this.lobbyService.getLobbyById(req.params.id);
+    if (!lobby) throw new NotFoundError("Lobby not found");
+    res.json(lobby);
+  };
 
-    async deleteLobby(req: Request, res: Response): Promise<Response> {
-        const { id } = req.params;
-        try {
-            await this.lobbyService.deleteLobby(id);
-            return res.status(constants.HTTP_STATUS_NO_CONTENT).send();
-        } catch (error) {
-            console.error("Error deleting lobby:", error);
-            return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-                .json({ error: "Failed to delete lobby" });
-        }
-    }
+  deleteLobby = async (req: Request, res: Response): Promise<void> => {
+    await this.lobbyService.deleteLobby(req.params.id);
+    this.wsServer.closeRoom(req.params.id);
+    res.status(constants.HTTP_STATUS_NO_CONTENT).send();
+  };
 
-    async addPlayerToLobby(req: Request, res: Response): Promise<Response> {
-        const { lobbyId } = req.params;
-        const { player } = req.body;
+  addPlayerToLobby = async (req: Request, res: Response): Promise<void> => {
+    const { lobbyId } = req.params;
+    const { player } = req.body;
+    if (!player) throw new BadRequestError("Player is required");
 
-        if (!player) {
-            return res.status(constants.HTTP_STATUS_BAD_REQUEST)
-                .json({ error: "Player is required" });
-        }
+    const lobby = await this.lobbyService.addPlayerToLobby(lobbyId, player);
+    if (!lobby) throw new NotFoundError("Lobby not found");
 
-        try {
-            const lobby = await this.lobbyService.addPlayerToLobby(lobbyId, player);
-            if (!lobby) {
-                return res.status(constants.HTTP_STATUS_NOT_FOUND)
-                    .json({ error: "Lobby not found" });
-            }
-            return res.json(lobby);
-        } catch (error) {
-            console.error("Error adding player to lobby:", error);
-            return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-                .json({ error: "Failed to add player to lobby" });
-        }
-    }
+    this.wsServer.notify(lobbyId, "lobby:changed");
+    res.json(lobby);
+  };
 
-    async removePlayerFromLobby(req: Request, res: Response): Promise<Response> {
-        const { lobbyId } = req.params;
-        const { playerId } = req.body;
+  removePlayerFromLobby = async (req: Request, res: Response): Promise<void> => {
+    const { lobbyId } = req.params;
+    const { playerId } = req.body;
+    if (!playerId) throw new BadRequestError("Player ID is required");
 
-        if (!playerId) {
-            return res.status(constants.HTTP_STATUS_BAD_REQUEST)
-                .json({ error: "Player ID is required" });
-        }
+    const lobby = await this.lobbyService.removePlayerFromLobby(lobbyId, playerId);
+    if (!lobby) throw new NotFoundError("Lobby not found");
 
-        try {
-            const lobby = await this.lobbyService.removePlayerFromLobby(lobbyId, playerId);
-            if (!lobby) {
-                return res.status(constants.HTTP_STATUS_NOT_FOUND)
-                    .json({ error: "Lobby not found" });
-            }
-            return res.json(lobby);
-        } catch (error) {
-            console.error("Error removing player from lobby:", error);
-            return res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-                .json({ error: "Failed to remove player from lobby" });
-        }
-    }
+    this.wsServer.notify(lobbyId, "lobby:changed");
+    res.json(lobby);
+  };
 }
