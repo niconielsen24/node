@@ -1,9 +1,11 @@
 import express from "express";
-import { createUserRouter } from "./routes/userRoutes";
 import { corsMiddleware } from "./middleware/cors";
 import { authMiddleware } from "./middleware/auth";
-import { InMemGameRepo, InMemLobbyRepo, InMemUserRepo } from "./internal/repository/inmem";
+import { InMemUserRepo } from "./internal/repository/inmem_user";
+import { InMemLobbyRepo } from "./internal/repository/inmem_lobby";
+import { InMemGameRepo } from "./internal/repository/inmem_game";
 import { logger } from "./middleware/logger";
+import { createUserRouter } from "./routes/userRoutes";
 import { UserService } from "./services/userService";
 import { UserController } from "./controllers/userController";
 import { LobbyController } from "./controllers/lobbyController";
@@ -32,10 +34,13 @@ const userController = new UserController(userService);
 const lobbyController = new LobbyController(lobbyService);
 const gameController = new GameController(gameService);
 
+// Generic Middleware
 app.use(express.json());
 app.use(corsMiddleware);
 app.use(logger);
+app.use(authMiddleware);
 
+// Routes
 app.use("/users", createUserRouter(userController));
 app.use("/lobbies", createLobbyRouter(lobbyController));
 app.use("/games", createGameRouter(gameController));
