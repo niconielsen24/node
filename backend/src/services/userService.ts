@@ -1,10 +1,19 @@
 import { Repository } from "../internal/repository/repo";
-import { User } from "../models/user";
+import { newUser, User } from "../models/user";
 
-export function getUserById(id: string, repo: Repository<User>): Promise<User | null> {
-  return repo.read(id);
-}
+export class UserService {
+  constructor(private repo: Repository<User>) { }
 
-export function createUser(user: User, repo: Repository<User>): Promise<User> {
-  return repo.create(user);
+  getUserById(id: string): Promise<User | null> {
+    return this.repo.read(id);
+  }
+
+  createUser(name: string): Promise<User> {
+    const user = newUser(name);
+    return this.repo.create(user);
+  }
+
+  deleteUser(id: string): Promise<void> {
+    return this.repo.delete(id);
+  }
 }

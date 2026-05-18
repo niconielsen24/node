@@ -1,12 +1,11 @@
 import { Router } from "express";
-import * as userController from "../controllers/userController";
-import { Repository } from "../internal/repository/repo";
-import { User } from "../models/user";
+import { UserController } from "../controllers/userController";
 
-export function createUserRouter(repo: Repository<User>) {
+export function createUserRouter(controller: UserController): Router {
     const router = Router();
-    router.get("/:id", userController.getById(repo));
-    router.post("/newUser", userController.createUser(repo));
+    router.get("/:id", controller.getById);
+    router.post("/newUser", controller.createUser);
+    router.delete("/:id", controller.deleteUser);
     return router;
 }
 

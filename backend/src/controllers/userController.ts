@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import * as userService from "../services/userService";
-import { Repository } from "../internal/repository/repo";
-import { User, newUser } from "../models/user";
 import { constants } from "http2";
+import { UserService } from "../services/userService";
 
-export function getById(repo: Repository<User>) {
-  return async function (req: Request, res: Response): Promise<void> {
-    const user = await userService.getUserById(req.params.id, repo);
+export class UserController {
+  constructor(private userService: UserService) { }
+
+  getById = async (req: Request, res: Response): Promise<void> => {
+    const user = await this.userService.getUserById(req.params.id);
 
     if (!user) {
       res.status(constants.HTTP_STATUS_NOT_FOUND).json({ message: "User not found" });
@@ -15,10 +15,8 @@ export function getById(repo: Repository<User>) {
 
     res.json(user);
   };
-}
 
-export function createUser(repo: Repository<User>) {
-  return async function (req: Request, res: Response): Promise<void> {
+  createUser = async (req: Request, res: Response): Promise<void> => {
     const { name } = req.body;
 
     if (!name) {
@@ -26,7 +24,12 @@ export function createUser(repo: Repository<User>) {
       return;
     }
 
-    const created = await userService.createUser(newUser(name), repo);
+    const created = await this.userService.createUser(name);
     res.status(constants.HTTP_STATUS_CREATED).json(created);
+  };
+
+  deleteUser = async (req: Request, res: Response): Promise<void> => {
+    await this.userService.deleteUser(req.params.id);
+    res.status(constants.HTTP_STATUS_NO_CONTENT).send();  
   };
 }
