@@ -3,4 +3,5 @@ export interface Repository<T> {
   read(id: string): Promise<T | null>;
   update(id: string, data: Partial<T>): Promise<T>;
   delete(id: string): Promise<void>;
+  readAll(): Promise<T[]>;
 }

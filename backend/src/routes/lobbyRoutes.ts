@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 export function createLobbyRouter(controller: LobbyController): Router {
   const router = Router();
+  router.get("/all", asyncHandler(controller.getAllLobbies));
   router.get("/:id", asyncHandler(controller.getLobbyById));
   router.post("/", asyncHandler(controller.createLobby));
   router.delete("/:id", asyncHandler(controller.deleteLobby));

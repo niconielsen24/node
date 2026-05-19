@@ -5,19 +5,38 @@ import { NodeChain } from "./components/NodeChain";
 import { StatsBar } from "./components/StatsBar";
 import { HeroCTA } from "./components/HeroCTA";
 import { CreateUserPanel } from "./components/CreateUserPanel";
+import { LobbyPanel } from "./components/LobbyPanel";
+import { useLobbyStore } from "../../state/lobby_store";
+import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const [visible, setVisible] = useState(false);
   const [createUserVisible, setCreateUserVisible] = useState(false);
-  const setUser = useUserStore((state) => state.setUser);
+  const [lobbyVisible, setLobbyVisible] = useState(false);
+  const navigate = useNavigate();
+
+  const { lobbies, myLobbies, addMyLobby, setLobbies } = useLobbyStore();
+  const { setUser } = useUserStore();
+  const { user } = useUserStore();
 
   const handleCreateUser = async (name: string) => {
     try {
       const user = await caller.createUser(name);
       setUser(user);
+      setLobbyVisible(true);
       console.log("User created:", user);
     } catch (error) {
       console.error("Error creating user:", error);
+    }
+  };
+
+  const handleCreateLobby = async () => {
+    try {
+      const lobby = await caller.createLobby(user!, `${user!.name}'s Lobby`, false);
+      addMyLobby(lobby);
+      console.log("Lobby created:", lobby);
+    } catch (error) {
+      console.error("Error creating lobby:", error);
     }
   };
 
@@ -26,9 +45,33 @@ export default function HomePage() {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (!lobbyVisible) return;
+
+    const fetchLobbies = async () => {
+      try {
+        const lobbies = await caller.getAllLobbies();
+        setLobbies(lobbies);
+        console.log("Fetched lobbies:", lobbies);
+      } catch (error) {
+        console.error("Error fetching lobbies:", error);
+      }
+    };
+    fetchLobbies();
+  }, [lobbyVisible, setLobbies])
+
+  useEffect(() => {
+    if (myLobbies) {
+      console.log("Lobbies updated:", myLobbies);
+      if (myLobbies.length > 0) {
+        navigate(`/lobby/${myLobbies[0].id}`);
+      }
+    }
+  }, [myLobbies, navigate]);
+
   return (
     <section className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-8 py-20 font-mono w-screen">
-      <div className="flex items-start w-full max-w-5xl mx-auto">
+      <div className="flex items-start w-full max-w-[88rem] mx-auto">
 
         <div className="max-w-2xl w-full flex-shrink-0">
 
@@ -62,7 +105,12 @@ export default function HomePage() {
 
         </div>
 
-        <CreateUserPanel visible={createUserVisible} handleCreateUser={handleCreateUser} />
+        <div className={`transition-all duration-300 ease-out overflow-hidden flex-shrink-0 ${createUserVisible ? "w-[42rem] opacity-100 ml-8" : "w-0 opacity-0 ml-0"}`}>
+          <div className="w-[42rem] border-l border-zinc-800 pl-8 flex flex-col gap-4">
+            <CreateUserPanel handleCreateUser={handleCreateUser} name={user?.name} />
+            <LobbyPanel visible={lobbyVisible} lobbies={lobbies} createLobby={handleCreateLobby} />
+          </div>
+        </div>
 
       </div>
     </section>

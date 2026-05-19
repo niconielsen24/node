@@ -26,4 +26,8 @@ export class InMemLobbyRepo implements Repository<Lobby> {
   async delete(id: string): Promise<void> {
     this.lobbies.delete(id);
   }
+
+  async readAll(): Promise<Lobby[]> {
+    return Array.from(this.lobbies.values());
+  }
 }

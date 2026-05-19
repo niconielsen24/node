@@ -73,6 +73,10 @@ class Caller {
       body: JSON.stringify({ playerId }),
     });
   }
+
+  getAllLobbies(): Promise<Lobby[]> {
+    return this.request("/lobbies/all");
+  }
 }
 
 export const caller = Caller.getInstance();

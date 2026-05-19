@@ -26,4 +26,8 @@ export class InMemUserRepo implements Repository<User> {
   async delete(id: string): Promise<void> {
     this.users.delete(id);
   }
+
+  async readAll(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
 }

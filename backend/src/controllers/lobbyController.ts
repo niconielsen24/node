@@ -55,4 +55,9 @@ export class LobbyController {
     this.wsServer.notify(lobbyId, "lobby:changed");
     res.json(lobby);
   };
+
+  getAllLobbies = async (_req: Request, res: Response): Promise<void> => {
+    const lobbies = await this.lobbyService.getAllLobbies();
+    res.json(lobbies);
+  };
 }

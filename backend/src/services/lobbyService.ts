@@ -26,10 +26,13 @@ export class LobbyService {
     }
 
     async getAllLobbies(): Promise<Lobby[]> {
-        // This method is not defined in the Repository interface, so we need to implement it here.
-        // Assuming we have a method to get all lobbies from the repository.
-        // This is a placeholder implementation and should be replaced with actual logic to fetch all lobbies.
-        return [];
+        let lobbies = [];
+        for (const lobby of await this.repo.readAll()) {
+            if (!lobby.isPrivate) {
+                lobbies.push(lobby);
+            }
+        } 
+        return lobbies;
     }
 
     async addPlayerToLobby(lobbyId: string, player: User): Promise<Lobby | null> {
