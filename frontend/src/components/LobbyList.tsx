@@ -1,16 +1,28 @@
+import type { User } from "../internal/user/user_class";
 import type { Lobby } from "../types/contracts/lobby";
 
 interface Props {
+  user: User | null;
   lobbies: Lobby[] | null;
   createLobby: () => void;
+  joinLobby: (lobbyId: string, user: User) => void;
+  refreshLobbies: () => void;
 }
 
-export const LobbyList = ({ lobbies = null, createLobby }: Props) => {
+export const LobbyList = ({ user, lobbies = null, createLobby, joinLobby, refreshLobbies }: Props) => {
   return (
     <div className="border border-zinc-800 rounded-xl bg-zinc-900 p-6">
-      <h2 className="font-sans text-lg font-bold text-white mb-1 tracking-tight">
-        Join a lobby
-      </h2>
+      <div className="flex items-start justify-between mb-1">
+        <h2 className="font-sans text-lg font-bold text-white tracking-tight">
+          Join a lobby
+        </h2>
+        <button
+          onClick={refreshLobbies}
+          className="font-mono text-xs text-zinc-500 hover:text-emerald-400 uppercase tracking-widest transition-colors duration-150"
+        >
+          ↻ Refresh
+        </button>
+      </div>
       <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest mb-5">
         Create or join a game lobby to start playing
       </p>
@@ -42,7 +54,10 @@ export const LobbyList = ({ lobbies = null, createLobby }: Props) => {
                   </span>
                 </td>
                 <td className="py-3 text-right">
-                  <button className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors duration-150">
+                  <button 
+                    onClick={() => joinLobby(lobby.id, user!)}
+                    className="text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:cursor-pointer transition-colors duration-150"
+                  >
                     Join →
                   </button>
                 </td>

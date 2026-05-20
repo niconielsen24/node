@@ -7,10 +7,23 @@ export class WsClient {
     public static getInstance(): Socket {
         if (!WsClient.instance) {
             WsClient.instance = io(WsClient.SERVER_URL, {
-                withCredentials: true,
+                withCredentials: false,
             });
         }
+
         return WsClient.instance;
+    }
+
+    public static joinRoom(roomId: string): void {
+        WsClient.getInstance().emit("join-room", roomId);
+    }
+
+    public static leaveRoom(roomId: string): void {
+        WsClient.getInstance().emit("leave-room", roomId);
+    }
+
+    public static notify(roomId: string, event: string): void {
+        WsClient.getInstance().emit("notify", { roomId, event });
     }
 }
 

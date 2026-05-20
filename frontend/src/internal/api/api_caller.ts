@@ -1,5 +1,6 @@
 import type { User } from "../../types/contracts/user";
 import type { Lobby } from "../../types/contracts/lobby";
+import type { Game } from "../../types/contracts/game";
 
 class Caller {
   private static instance: Caller;
@@ -76,6 +77,14 @@ class Caller {
 
   getAllLobbies(): Promise<Lobby[]> {
     return this.request("/lobbies/all");
+  }
+
+  // Games
+  createGame(users: User[], name: string): Promise<Game> {
+    return this.request("/games/create", {
+      method: "POST",
+      body: JSON.stringify({ users, name }),
+    });
   }
 }
 

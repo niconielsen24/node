@@ -26,12 +26,8 @@ export class LobbyService {
     }
 
     async getAllLobbies(): Promise<Lobby[]> {
-        let lobbies = [];
-        for (const lobby of await this.repo.readAll()) {
-            if (!lobby.isPrivate) {
-                lobbies.push(lobby);
-            }
-        } 
+        const lobbies = await this.repo.readAll();
+         
         return lobbies;
     }
 

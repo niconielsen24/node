@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { caller } from "../../internal/api/api_caller";
 import { useUserStore } from "../../state/user_store";
 import { NodeChain } from "./components/NodeChain";
@@ -8,6 +8,7 @@ import { CreateUserPanel } from "./components/CreateUserPanel";
 import { LobbyPanel } from "./components/LobbyPanel";
 import { useLobbyStore } from "../../state/lobby_store";
 import { useNavigate } from "react-router-dom";
+import type { User } from "../../internal/user/user_class";
 
 export default function HomePage() {
   const [visible, setVisible] = useState(false);
@@ -40,25 +41,35 @@ export default function HomePage() {
     }
   };
 
+  const handleJoinLobby = async (lobbyId: string, user: User) => {
+    try {
+      const lobby = await caller.addPlayerToLobby(lobbyId, user);
+      addMyLobby(lobby);
+      navigate(`/lobby/${lobby.id}`);
+      console.log("Joined lobby:", lobby);
+    } catch (error) {
+      console.error("Error joining lobby:", error);
+    }
+  }
+
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(t);
   }, []);
 
+  const fetchLobbies = useCallback(async () => {
+    try {
+      const lobbies = await caller.getAllLobbies();
+      setLobbies(lobbies);
+    } catch (error) {
+      console.error("Error fetching lobbies:", error);
+    }
+  }, [setLobbies]);
+
   useEffect(() => {
     if (!lobbyVisible) return;
-
-    const fetchLobbies = async () => {
-      try {
-        const lobbies = await caller.getAllLobbies();
-        setLobbies(lobbies);
-        console.log("Fetched lobbies:", lobbies);
-      } catch (error) {
-        console.error("Error fetching lobbies:", error);
-      }
-    };
     fetchLobbies();
-  }, [lobbyVisible, setLobbies])
+  }, [lobbyVisible, fetchLobbies])
 
   useEffect(() => {
     if (myLobbies) {
@@ -108,7 +119,7 @@ export default function HomePage() {
         <div className={`transition-all duration-300 ease-out overflow-hidden flex-shrink-0 ${createUserVisible ? "w-[42rem] opacity-100 ml-8" : "w-0 opacity-0 ml-0"}`}>
           <div className="w-[42rem] border-l border-zinc-800 pl-8 flex flex-col gap-4">
             <CreateUserPanel handleCreateUser={handleCreateUser} name={user?.name} />
-            <LobbyPanel visible={lobbyVisible} lobbies={lobbies} createLobby={handleCreateLobby} />
+            <LobbyPanel visible={lobbyVisible} lobbies={lobbies} createLobby={handleCreateLobby} joinLobby={handleJoinLobby} refreshLobbies={fetchLobbies} />
           </div>
         </div>
 
