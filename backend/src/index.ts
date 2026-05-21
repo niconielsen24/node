@@ -29,12 +29,12 @@ const gameRepo = new InMemGameRepo();
 
 // Services
 const userService = new UserService(userRepo);
-const lobbyService = new LobbyService(lobbyRepo);
+const lobbyService = new LobbyService(lobbyRepo, gameRepo);
 const gameService = new GameService(gameRepo);
 
 // Controllers
 const userController = new UserController(userService);
-const lobbyController = new LobbyController(lobbyService, WsServer);
+const lobbyController = new LobbyController(lobbyService, gameService, WsServer);
 const gameController = new GameController(gameService);
 
 // Generic Middleware

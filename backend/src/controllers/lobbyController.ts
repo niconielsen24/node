@@ -3,9 +3,14 @@ import { constants } from "http2";
 import { LobbyService } from "../services/lobbyService";
 import { WsServer } from "../ws/wsServer";
 import { BadRequestError, NotFoundError } from "../errors/httpErrors";
+import { GameService } from "../services/gameService";
 
 export class LobbyController {
-  constructor(private lobbyService: LobbyService, private wsServer: typeof WsServer) {}
+  constructor(
+    private lobbyService: LobbyService,
+    private gameService: GameService,
+    private wsServer: typeof WsServer
+  ) { }
 
   createLobby = async (req: Request, res: Response): Promise<void> => {
     const { owner, name, isPrivate } = req.body;
@@ -59,5 +64,17 @@ export class LobbyController {
   getAllLobbies = async (_req: Request, res: Response): Promise<void> => {
     const lobbies = await this.lobbyService.getAllLobbies();
     res.json(lobbies);
+  };
+
+  createGame = async (req: Request, res: Response): Promise<void> => {
+    if (!req.body.name) throw new BadRequestError("Missing required fields: users and name");
+    if (!req.params.lobbyId) throw new BadRequestError("Missing lobby ID in parameters or body");
+
+    const lobbyId = req.params.lobbyId;
+    const { name } = req.body;
+
+    const game = await this.lobbyService.createGame(lobbyId, name);
+    this.wsServer.notify(lobbyId, "lobby:game-created");
+    res.status(201).json(game);
   };
 }

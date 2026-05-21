@@ -10,5 +10,6 @@ export function createLobbyRouter(controller: LobbyController): Router {
   router.delete("/:id", asyncHandler(controller.deleteLobby));
   router.post("/:lobbyId/players", asyncHandler(controller.addPlayerToLobby));
   router.delete("/:lobbyId/players", asyncHandler(controller.removePlayerFromLobby));
+  router.post("/:lobbyId/create-game", asyncHandler(controller.createGame));
   return router;
 }

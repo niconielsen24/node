@@ -80,10 +80,10 @@ class Caller {
   }
 
   // Games
-  createGame(users: User[], name: string): Promise<Game> {
-    return this.request("/games/create", {
+  createGame(lobbyId: string, name: string): Promise<Game> {
+    return this.request(`/lobbies/${lobbyId}/create-game`, {
       method: "POST",
-      body: JSON.stringify({ users, name }),
+      body: JSON.stringify({ name }),
     });
   }
 }

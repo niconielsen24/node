@@ -34,7 +34,7 @@ export const LobbyPage = () => {
     const createGame = async () => {
         if (!lobby) return;
         try {
-            const game = await caller.createGame(lobby.players, lobby.name);
+            const game = await caller.createGame(lobby.id, lobby.name);
             console.log("Game created:", game);
         } catch (error) {
             console.error("Error creating game:", error);
